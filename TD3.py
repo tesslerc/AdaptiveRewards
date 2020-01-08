@@ -227,9 +227,13 @@ class TD3(object):
         torch.save(self.critic_optimizer.state_dict(), filename + "_critic_optimizer")
         torch.save(self.actor.state_dict(), filename + "_actor")
         torch.save(self.actor_optimizer.state_dict(), filename + "_actor_optimizer")
+        torch.save(self.reward.state_dict(), filename + "_reward")
+        torch.save(self.reward_optimizer.state_dict(), filename + "_reward_optimizer")
 
     def load(self, filename):
         self.critic.load_state_dict(torch.load(filename + "_critic"))
         self.critic_optimizer.load_state_dict(torch.load(filename + "_critic_optimizer"))
         self.actor.load_state_dict(torch.load(filename + "_actor"))
         self.actor_optimizer.load_state_dict(torch.load(filename + "_actor_optimizer"))
+        self.reward.load_state_dict(torch.load(filename + "_reward"))
+        self.reward_optimizer.load_state_dict(torch.load(filename + "_reward_optimizer"))
