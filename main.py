@@ -55,11 +55,18 @@ def main():
     parser.add_argument("--noise_clip", default=0.5)  # Range to clip target policy noise
     parser.add_argument("--policy_freq", default=2, type=int)  # Frequency of delayed policy updates
     parser.add_argument("--infinite_horizon", action="store_true")  # Consider infinite or finite horizon task
+    parser.add_argument("--adaptive_reward", action="store_true")  # Save model and optimizer parameters
     parser.add_argument("--save_model", action="store_true")  # Save model and optimizer parameters
     parser.add_argument("--load_model", default="")  # Model load file name, "" doesn't load, "default" uses file_name
     args = parser.parse_args()
 
-    file_name = f"{args.policy}_{args.env}_{args.seed}"
+    file_name = f"{args.policy}_{args.env}_{args.discount}_"
+    if not args.infinite_horizon:
+        file_name += "finite_horizon_"
+    if args.adaptive_reward:
+        file_name += "adaptive_reward_"
+
+    file_name += f"{args.seed}"
     print("---------------------------------------")
     print(f"Policy: {args.policy}, Env: {args.env}, Seed: {args.seed}")
     print("---------------------------------------")
@@ -92,7 +99,8 @@ def main():
         "max_action": max_action,
         "discount": args.discount,
         "tau": args.tau,
-        "max_steps": max_steps
+        "max_steps": max_steps,
+        "adaptive_reward": args.adaptive_reward
     }
 
     # Initialize policy

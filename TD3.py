@@ -89,7 +89,8 @@ class TD3(object):
             policy_noise=0.2,
             noise_clip=0.5,
             policy_freq=2,
-            max_steps=0
+            max_steps=0,
+            adaptive_reward=False
     ):
 
         self.actor = Actor(state_dim, action_dim, max_action).to(device)
@@ -112,6 +113,7 @@ class TD3(object):
         self.policy_freq = policy_freq
 
         self.max_steps = max_steps
+        self.adaptive_reward = adaptive_reward
 
         self.total_it = 0
 
@@ -124,7 +126,7 @@ class TD3(object):
 
         num_samples = 1
 
-        if self.max_steps > 0 and self.total_it % 4 == 0:
+        if self.adaptive_reward and self.total_it % 4 == 0:
             for _ in range(num_samples):
                 iterations = 0
                 reward_loss = 0
@@ -186,7 +188,7 @@ class TD3(object):
             target_Q1, target_Q2 = self.critic_target(next_state, next_action)
             target_Q = torch.min(target_Q1, target_Q2)
 
-            if self.max_steps > 0 and self.total_it > 10000:
+            if self.adaptive_reward and self.total_it > 10000:
                 reward = self.reward(state).detach()
 
             target_Q = reward + not_done * self.discount * target_Q
