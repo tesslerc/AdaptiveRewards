@@ -10,24 +10,22 @@ import DDPG
 
 
 # Runs policy for X episodes and returns average *total* reward
-def eval_policy(policy, env_name, eval_episodes=10, max_steps=0):
+def eval_policy(policy, env_name, eval_episodes=10, max_steps=0, infinite_horizon=False):
     eval_env = gym.make(env_name)
 
     avg_reward = 0.
     for _ in range(eval_episodes):
         state, done = eval_env.reset(), False
         remaining_steps = max_steps * 1.0
-        if max_steps > 0:
-            state = np.append(state, [remaining_steps / max_steps])
 
         while not done:
+            if not infinite_horizon:
+                state = np.append(state, [remaining_steps / max_steps])
+
             action = policy.select_action(np.array(state))
             state, reward, done, _ = eval_env.step(action)
 
             remaining_steps -= 1
-
-            if max_steps > 0:
-                state = np.append(state, [remaining_steps / max_steps])
 
             avg_reward += reward
 
@@ -87,10 +85,9 @@ def main():
     state_dim = env.observation_space.shape[0]
     action_dim = env.action_space.shape[0]
     max_action = float(env.action_space.high[0])
-    max_steps = 0.0
+    max_steps = env._max_episode_steps
 
     if not args.infinite_horizon:
-        max_steps = env._max_episode_steps
         state_dim += 1
 
     kwargs = {
@@ -120,7 +117,7 @@ def main():
     replay_buffer = utils.ReplayBuffer(state_dim, action_dim)
 
     # Evaluate untrained policy
-    evaluations = [eval_policy(policy, args.env, max_steps=max_steps)]
+    evaluations = [eval_policy(policy, args.env, max_steps=max_steps, infinite_horizon=args.infinite_horizon)]
     best_performance = evaluations[-1]
 
     state, done = env.reset(), False
@@ -176,7 +173,7 @@ def main():
 
         # Evaluate episode
         if (t + 1) % args.eval_freq == 0:
-            evaluations.append(eval_policy(policy, args.env, max_steps=max_steps))
+            evaluations.append(eval_policy(policy, args.env, max_steps=max_steps, infinite_horizon=args.infinite_horizon))
             np.save(f"./results/{file_name}", evaluations)
             if args.save_model and evaluations[-1] > best_performance:
                 best_performance = evaluations[-1]
@@ -187,7 +184,7 @@ def main():
     # This is an unbiased estimator of the performance, as opposed to taking the max over the process itself.
     if args.save_model:
         policy.load(f"./models/{file_name}")
-        evaluations.append(eval_policy(policy, args.env, eval_episodes=100, max_steps=max_steps))
+        evaluations.append(eval_policy(policy, args.env, eval_episodes=100, max_steps=max_steps, infinite_horizon=args.infinite_horizon))
         np.save(f"./results/{file_name}", evaluations)
 
 
