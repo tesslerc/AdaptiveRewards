@@ -188,7 +188,7 @@ class TD3(object):
             target_Q1, target_Q2 = self.critic_target(next_state, next_action)
             target_Q = torch.min(target_Q1, target_Q2)
 
-            if self.adaptive_reward and self.total_it > 10000:
+            if self.adaptive_reward and self.total_it > 1000:
                 reward = self.reward(state).detach()
 
             target_Q = reward + not_done * self.discount * target_Q
