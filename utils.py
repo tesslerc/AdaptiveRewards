@@ -37,7 +37,7 @@ class ReplayBuffer(object):
 			torch.FloatTensor(self.not_done[ind]).to(self.device)
 		)
 
-	def sample_trajectory(self, batch_size):
+	def sample_trajectory(self, batch_size, max_length=100, min_length=10, sample_whole_trajectory=False):
 		states = []
 		rewards = []
 
@@ -46,13 +46,20 @@ class ReplayBuffer(object):
 			state_traj = []
 			reward_traj = []
 			i = np.random.randint(0, self.size)
-			while not done and i < self.size and len(state_traj) < 100:
-				state_traj.append(self.state[i])
+
+			if sample_whole_trajectory:
+				while self.not_done[i]:
+					i += 1
+					i = i % self.size
+				i += 1
+				i = i % self.size
+			while not done and i < self.size and len(state_traj) < max_length:
+				state_traj.append(self.next_state[i])
 				reward_traj.append(self.reward[i])
 				done = not self.not_done[i]
 				i += 1
 
-			if len(state_traj) > 10:
+			if len(state_traj) > min_length:
 				states.append(torch.FloatTensor(state_traj).to(self.device))
 				rewards.append(torch.FloatTensor(reward_traj).to(self.device))
 

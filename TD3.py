@@ -164,7 +164,7 @@ class TD3(object):
 
                             logit = 0 if rew_traj_0 > rew_traj_1 else 1
 
-                            reward_loss = self.reward_loss(concat_rews, torch.Tensor([logit]).long().to(device))
+                            reward_loss += self.reward_loss(concat_rews, torch.Tensor([logit]).long().to(device))
 
                 #  reward_loss = reward_loss / iterations
                 self.reward_optimizer.zero_grad()
